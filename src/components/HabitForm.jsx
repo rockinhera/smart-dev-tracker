@@ -10,19 +10,39 @@ function HabitForm({
   addHabit,
 }) {
   const [showError, setShowError] = useState(false);
+  const [minutesError, setMinutesError] = useState(false);
 
   const handleAdd = () => {
-    if (title.trim() === "" || Number(minutes) < 1) {
+    const numericMinutes = Number(minutes);
+
+    if (title.trim() === "") {
       setShowError(true);
+    } else {
+      setShowError(false);
+    }
+
+    if (
+      !Number.isFinite(numericMinutes) ||
+      numericMinutes < 1
+    ) {
+      setMinutesError(true);
+    } else {
+      setMinutesError(false);
+    }
+
+    if (
+      title.trim() === "" ||
+      !Number.isFinite(numericMinutes) ||
+      numericMinutes < 1
+    ) {
       return;
     }
 
-    setShowError(false);
     addHabit();
   };
 
   return (
-    <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-900 p-5">
+    <div className="mb-8 border border-slate-800 bg-slate-900 p-5 rounded-xl">
       <h2 className="mb-4 text-xl font-semibold">
         Add a new habit
       </h2>
@@ -40,7 +60,7 @@ function HabitForm({
             className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 outline-none focus:border-purple-500"
           />
 
-          {showError && title.trim() === "" && (
+          {showError && (
             <p className="mt-1 text-sm text-red-400">
               You need to fill this out.
             </p>
@@ -55,14 +75,14 @@ function HabitForm({
             value={minutes}
             onChange={(e) => {
               setMinutes(e.target.value);
-              setShowError(false);
+              setMinutesError(false);
             }}
             className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 outline-none focus:border-purple-500"
           />
 
-          {showError && Number(minutes) < 1 && (
+          {minutesError && (
             <p className="mt-1 text-sm text-red-400">
-              You need to fill this out.
+              Please enter a valid number of minutes.
             </p>
           )}
         </div>
@@ -81,7 +101,7 @@ function HabitForm({
 
       <button
         onClick={handleAdd}
-        className="mt-4 rounded-lg bg-purple-600 px-5 py-2 font-medium hover:bg-purple-500"
+        className="mt-4 rounded-lg bg-purple-600 px-5 py-2 font-medium transition hover:bg-purple-500"
       >
         + Add Habit
       </button>
@@ -89,4 +109,4 @@ function HabitForm({
   );
 }
 
-export default HabitForm; 
+export default HabitForm;

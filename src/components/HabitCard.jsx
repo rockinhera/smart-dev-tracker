@@ -1,4 +1,13 @@
+import { useState } from "react";
 import { Flame } from "lucide-react";
+
+const categoryStyles = {
+  Coding: "bg-purple-500/20 text-purple-400",
+  Health: "bg-purple-500/20 text-purple-400",
+  Reading: "bg-purple-500/20 text-purple-400",
+  Career: "bg-purple-500/20 text-purple-400",
+};
+
 function HabitCard({
   habit,
   editingId,
@@ -14,11 +23,43 @@ function HabitCard({
   toggleHabit,
   setEditingId,
 }) {
+  const [editError, setEditError] = useState("");
+
+  const handleSave = () => {
+    const numericMinutes = Number(editMinutes);
+
+    if (editTitle.trim() === "") {
+      setEditError("You need to fill this out.");
+      return;
+    }
+
+    if (!Number.isFinite(numericMinutes) || numericMinutes < 1) {
+      setEditError("Please enter a valid number of minutes.");
+      return;
+    }
+
+    const saved = saveEdit(habit.id);
+
+    if (saved) {
+      setEditError("");
+    }
+  };
+
+  const handleDelete = () => {
+    const answer = window.confirm(
+      "Are you sure you want to delete this habit?"
+    );
+
+    if (answer) {
+      deleteHabit(habit.id);
+    }
+  };
+
   return (
     <div
-      className={`rounded-2xl border p-5 ${
+      className={`rounded-xl border p-5 ${
         habit.completed
-          ? "border-green-500/30 bg-green-500/10"
+          ? "border-purple-500/30 bg-purple-500/10"
           : "border-slate-800 bg-slate-900"
       }`}
     >
@@ -27,17 +68,35 @@ function HabitCard({
           <input
             type="text"
             value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            className="mb-3 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 outline-none focus:border-purple-500"
+            onChange={(e) => {
+              setEditTitle(e.target.value);
+              setEditError("");
+            }}
+            className="mb-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 outline-none focus:border-purple-500"
           />
+
+          {editError && editTitle.trim() === "" && (
+            <p className="mb-3 text-sm text-red-400">
+              You need to fill this out.
+            </p>
+          )}
 
           <input
             type="number"
             min="1"
             value={editMinutes}
-            onChange={(e) => setEditMinutes(e.target.value)}
-            className="mb-3 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 outline-none focus:border-purple-500"
+            onChange={(e) => {
+              setEditMinutes(e.target.value);
+              setEditError("");
+            }}
+            className="mb-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 outline-none focus:border-purple-500"
           />
+
+          {editError && editTitle.trim() !== "" && (
+            <p className="mb-3 text-sm text-red-400">
+              {editError}
+            </p>
+          )}
 
           <select
             value={editCategory}
@@ -52,14 +111,17 @@ function HabitCard({
 
           <div className="mt-4 flex gap-2">
             <button
-              onClick={() => saveEdit(habit.id)}
-              className="rounded-lg bg-green-600 px-4 py-2 text-sm hover:bg-green-500"
+              onClick={handleSave}
+              className="rounded-lg bg-purple-600 px-4 py-2 text-sm hover:bg-purple-500"
             >
               Save
             </button>
 
             <button
-              onClick={() => setEditingId(null)}
+              onClick={() => {
+                setEditingId(null);
+                setEditError("");
+              }}
               className="rounded-lg bg-slate-700 px-4 py-2 text-sm hover:bg-slate-600"
             >
               Cancel
@@ -72,9 +134,7 @@ function HabitCard({
             <div>
               <h3
                 className={`text-xl font-semibold ${
-                  habit.completed
-                    ? "text-green-400"
-                    : "text-white"
+                  habit.completed ? "text-purple-400" : "text-white"
                 }`}
               >
                 {habit.title}
@@ -83,13 +143,8 @@ function HabitCard({
               <div className="mt-2 flex items-center gap-2">
                 <span
                   className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                    habit.category === "Coding"
-                      ? "bg-purple-500/20 text-purple-400"
-                      : habit.category === "Health"
-                      ? "bg-purple-500/20 text-purple-400"
-                      : habit.category === "Reading"
-                      ? "bg-purple-500/20 text-purple-400"
-                      : "bg-purple-500/20 text-purple-400"
+                    categoryStyles[habit.category] ||
+                    "bg-slate-500/20 text-slate-400"
                   }`}
                 >
                   {habit.category}
@@ -101,15 +156,15 @@ function HabitCard({
               </div>
             </div>
 
-            <span className="rounded-full bg-slate-800 px-3 py-1 text-sm">
-               <Flame size={16} />
-               {habit.streak}
+            <span className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1 text-sm">
+              <Flame size={16} />
+              {habit.streak}
             </span>
           </div>
 
           {habit.completed && (
             <div className="mt-4 h-2 rounded-full bg-slate-800">
-              <div className="h-2 w-full rounded-full bg-green-500"></div>
+              <div className="h-2 w-full rounded-full bg-purple-500"></div>
             </div>
           )}
 
@@ -118,32 +173,25 @@ function HabitCard({
               onClick={() => toggleHabit(habit.id)}
               className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium hover:bg-purple-500"
             >
-              {habit.completed
-                ? "Completed ✓"
-                : "Mark Complete"}
+              {habit.completed ? "Completed ✓" : "Mark Complete"}
             </button>
 
             <button
-              onClick={() => startEdit(habit)}
+              onClick={() => {
+                startEdit(habit);
+                setEditError("");
+              }}
               className="rounded-lg bg-slate-700 px-4 py-2 text-sm hover:bg-slate-600"
             >
               Edit
             </button>
 
             <button
-         onClick={() => {
-         const answer = window.confirm(
-        "Are you sure you want to delete this habit?"
-       );
-
-           if (answer) {
-           deleteHabit(habit.id);
-         }
-         }}
-             className="rounded-lg bg-red-600 px-4 py-2 text-sm hover:bg-red-500"
->
-            Delete
-          </button>
+              onClick={handleDelete}
+              className="rounded-lg border border-purple-500 px-4 py-2 text-sm text-purple-400 hover:bg-purple-500/10"
+            >
+              Delete
+            </button>
           </div>
         </div>
       )}
